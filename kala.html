@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد هوشمند - «مدیریت کامل کسب‌وکار چندمحصولی با یک فایل ساده»</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap');
+        body { font-family: 'Vazirmatn', sans-serif; }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); }
+        .marquee { overflow: hidden; white-space: nowrap; }
+        @keyframes marquee {
+            from { transform: translateX(100%); }
+            to { transform: translateX(-100%); }
+        }
+        .animate-marquee {
+            animation: marquee 25s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-chart-line text-3xl text-blue-600"></i>
+                <div>
+                    <h1 class="text-2xl font-bold">داشبورد هوشمند</h1>
+                    <p class="text-xs text-gray-500 -mt-1">«مدیریت کامل کسب‌وکار چندمحصولی با یک فایل ساده»</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="addProduct()" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>اضافه کردن محصول</span>
+                </button>
+                <button onclick="recordSale()" 
+                        class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition">
+                    <i class="fa-solid fa-cart-plus"></i>
+                    <span>ثبت فروش</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Marquee Ad Space -->
+        <div class="bg-amber-100 py-2 text-amber-800 text-sm border-t border-b">
+            <div class="marquee">
+                <div id="marquee-text" class="inline-block animate-marquee">
+                    🔥 «نسخه دمو رایگان — نسخه کامل فقط 490 هزار تومان» - برای خرید نسخه کامل یا سفارشی‌سازی تماس بگیرید: 09903776937 — پشتیبانی از چندین محصول و خدمات
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-6 py-8">
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-3xl p-6 card-hover shadow">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-500 text-sm">درآمد کل</p>
+                        <p id="total-revenue" class="text-3xl font-bold text-emerald-600 mt-2">۰ تومان</p>
+                    </div>
+                    <i class="fa-solid fa-money-bill-trend-up text-4xl text-emerald-100"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-3xl p-6 card-hover shadow">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-500 text-sm">تعداد محصولات</p>
+                        <p id="total-products" class="text-3xl font-bold text-blue-600 mt-2">۰</p>
+                    </div>
+                    <i class="fa-solid fa-boxes-stacked text-4xl text-blue-100"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-3xl p-6 card-hover shadow">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-500 text-sm">فروش امروز</p>
+                        <p id="today-sales" class="text-3xl font-bold text-violet-600 mt-2">۰</p>
+                    </div>
+                    <i class="fa-solid fa-cart-shopping text-4xl text-violet-100"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-3xl p-6 card-hover shadow">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-500 text-sm">سود تقریبی</p>
+                        <p id="total-profit" class="text-3xl font-bold text-amber-600 mt-2">۰ تومان</p>
+                    </div>
+                    <i class="fa-solid fa-chart-pie text-4xl text-amber-100"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Sales Chart -->
+            <div class="lg:col-span-8 bg-white rounded-3xl p-6 shadow">
+                <h2 class="font-semibold mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-line"></i>
+                    روند فروش ۳۰ روز اخیر
+                </h2>
+                <canvas id="salesChart" height="120"></canvas>
+            </div>
+
+            <!-- Top Products -->
+            <div class="lg:col-span-4 bg-white rounded-3xl p-6 shadow">
+                <h2 class="font-semibold mb-4">پرفروش‌ترین محصولات</h2>
+                <div id="top-products" class="space-y-4"></div>
+            </div>
+        </div>
+
+        <!-- Products Table -->
+        <div class="mt-8 bg-white rounded-3xl shadow overflow-hidden">
+            <div class="px-6 py-5 border-b flex justify-between items-center">
+                <h2 class="font-semibold">لیست محصولات</h2>
+                <button onclick="exportData()" class="text-blue-600 hover:text-blue-700 text-sm flex items-center gap-1">
+                    <i class="fa-solid fa-download"></i> دانلود CSV
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full" id="products-table">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-4 text-right">نام محصول</th>
+                            <th class="px-6 py-4 text-right">قیمت خرید</th>
+                            <th class="px-6 py-4 text-right">قیمت فروش</th>
+                            <th class="px-6 py-4 text-right">موجودی</th>
+                            <th class="px-6 py-4 text-right">فروش کل</th>
+                            <th class="px-6 py-4 text-right">سود هر واحد</th>
+                            <th class="px-6 py-4 text-right">عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-body" class="divide-y"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t mt-12 py-6 text-center text-gray-500 text-sm">
+        <p>نسخه دمو - «نسخه دمو — برای خرید نسخه کامل تماس بگیرید»</p>
+        <p class="text-xs mt-1">«آفلاین • امن • رایگان برای شروع»</p>
+    </footer>
+
+    <!-- Add Product Modal -->
+    <div id="product-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-md mx-4">
+            <h3 class="text-xl font-bold mb-6">اضافه کردن محصول جدید</h3>
+            <div class="space-y-4">
+                <input id="prod-name" type="text" placeholder="نام محصول" class="w-full px-4 py-3 border rounded-2xl focus:outline-none focus:border-blue-500">
+                <input id="prod-buy-price" type="number" placeholder="قیمت خرید (تومان)" class="w-full px-4 py-3 border rounded-2xl focus:outline-none focus:border-blue-500">
+                <input id="prod-price" type="number" placeholder="قیمت فروش (تومان)" class="w-full px-4 py-3 border rounded-2xl focus:outline-none focus:border-blue-500">
+                <input id="prod-stock" type="number" placeholder="موجودی اولیه" value="10" class="w-full px-4 py-3 border rounded-2xl focus:outline-none focus:border-blue-500">
+            </div>
+            <div class="flex gap-3 mt-8">
+                <button onclick="saveProduct()" class="flex-1 bg-blue-600 text-white py-4 rounded-2xl hover:bg-blue-700 transition">ذخیره</button>
+                <button onclick="closeModals()" class="flex-1 border py-4 rounded-2xl hover:bg-gray-50 transition">انصراف</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Record Sale Modal -->
+    <div id="sale-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-md mx-4">
+            <h3 class="text-xl font-bold mb-6">ثبت فروش جدید</h3>
+            <select id="sale-product" class="w-full px-4 py-3 border rounded-2xl mb-4 focus:outline-none focus:border-blue-500"></select>
+            <input id="sale-qty" type="number" placeholder="تعداد" value="1" class="w-full px-4 py-3 border rounded-2xl focus:outline-none focus:border-blue-500">
+            <div class="flex gap-3 mt-8">
+                <button onclick="saveSale()" class="flex-1 bg-emerald-600 text-white py-4 rounded-2xl hover:bg-emerald-700 transition">ثبت فروش</button>
+                <button onclick="closeModals()" class="flex-1 border py-4 rounded-2xl hover:bg-gray-50 transition">انصراف</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let products = JSON.parse(localStorage.getItem('products')) || [];
+        let sales = JSON.parse(localStorage.getItem('sales')) || [];
+        let salesChart;
+
+        function saveToLocal() {
+            localStorage.setItem('products', JSON.stringify(products));
+            localStorage.setItem('sales', JSON.stringify(sales));
+            renderAll();
+        }
+
+        function renderAll() {
+            renderKPIs();
+            renderTopProducts();
+            renderProductsTable();
+            renderChart();
+            updateSaleSelect();
+        }
+
+        function renderKPIs() {
+            const totalRev = sales.reduce((sum, s) => sum + (s.price * s.qty), 0);
+            const totalProd = products.length;
+            const todaySales = sales.filter(s => {
+                const d = new Date(s.date);
+                return d.toDateString() === new Date().toDateString();
+            }).length;
+
+            let profit = 0;
+            sales.forEach(s => {
+                const prod = products.find(p => p.id === s.productId);
+                if (prod) {
+                    const unitProfit = (prod.price - (prod.buyPrice || prod.price * 0.7));
+                    profit += unitProfit * s.qty;
+                }
+            });
+
+            document.getElementById('total-revenue').textContent = totalRev.toLocaleString('fa-IR') + ' تومان';
+            document.getElementById('total-products').textContent = totalProd;
+            document.getElementById('today-sales').textContent = todaySales;
+            document.getElementById('total-profit').textContent = Math.round(profit).toLocaleString('fa-IR') + ' تومان';
+        }
+
+        function renderTopProducts() {
+            const container = document.getElementById('top-products');
+            container.innerHTML = '';
+            const sorted = [...products].sort((a, b) => (b.sales || 0) - (a.sales || 0)).slice(0, 5);
+            sorted.forEach(p => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center";
+                div.innerHTML = `
+                    <div>
+                        <div class="font-medium">${p.name}</div>
+                        <div class="text-sm text-gray-500">${p.stock} موجود</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-emerald-600">${(p.sales || 0).toLocaleString('fa-IR')}</div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function renderProductsTable() {
+            const tbody = document.getElementById('products-body');
+            tbody.innerHTML = '';
+            products.forEach((p, index) => {
+                const unitProfit = p.price - (p.buyPrice || p.price * 0.7);
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition";
+                tr.innerHTML = `
+                    <td class="px-6 py-4">${p.name}</td>
+                    <td class="px-6 py-4">${(p.buyPrice || 0).toLocaleString('fa-IR')} تومان</td>
+                    <td class="px-6 py-4 font-medium">${p.price.toLocaleString('fa-IR')} تومان</td>
+                    <td class="px-6 py-4 ${p.stock < 5 ? 'text-red-600 font-bold' : ''}">${p.stock}</td>
+                    <td class="px-6 py-4">${(p.sales || 0).toLocaleString('fa-IR')}</td>
+                    <td class="px-6 py-4 text-emerald-600 font-medium">${unitProfit.toLocaleString('fa-IR')} تومان</td>
+                    <td class="px-6 py-4">
+                        <button onclick="deleteProduct(${index})" class="text-red-500 hover:text-red-700">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById('salesChart');
+            if (salesChart) salesChart.destroy();
+            const labels = ['روز ۱', 'روز ۲', 'روز ۳', 'روز ۴', 'روز ۵', 'روز ۶', 'روز ۷'];
+            const data = [120000, 85000, 210000, 145000, 98000, 167000, 234000];
+            salesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'فروش (تومان)',
+                        data: data,
+                        borderColor: '#10b981',
+                        tension: 0.4,
+                        fill: true,
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)'
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+        }
+
+        function updateSaleSelect() {
+            const select = document.getElementById('sale-product');
+            select.innerHTML = '<option value="">انتخاب محصول...</option>';
+            products.forEach((p, i) => {
+                if (p.stock > 0) {
+                    const opt = document.createElement('option');
+                    opt.value = i;
+                    opt.textContent = `${p.name} - ${p.price.toLocaleString('fa-IR')} تومان`;
+                    select.appendChild(opt);
+                }
+            });
+        }
+
+        function addProduct() {
+            document.getElementById('product-modal').classList.remove('hidden');
+        }
+
+        function saveProduct() {
+            const name = document.getElementById('prod-name').value.trim();
+            const buyPrice = parseInt(document.getElementById('prod-buy-price').value) || 0;
+            const price = parseInt(document.getElementById('prod-price').value) || 0;
+            const stock = parseInt(document.getElementById('prod-stock').value) || 0;
+            
+            if (!name || price <= 0) {
+                alert('نام و قیمت فروش را وارد کنید');
+                return;
+            }
+            
+            products.push({
+                id: Date.now(),
+                name,
+                buyPrice,
+                price,
+                stock,
+                sales: 0
+            });
+            
+            saveToLocal();
+            closeModals();
+        }
+
+        function recordSale() {
+            if (products.length === 0) {
+                alert('ابتدا حداقل یک محصول اضافه کنید');
+                return;
+            }
+            document.getElementById('sale-modal').classList.remove('hidden');
+        }
+
+        function saveSale() {
+            const prodIndex = parseInt(document.getElementById('sale-product').value);
+            const qty = parseInt(document.getElementById('sale-qty').value) || 1;
+            
+            if (isNaN(prodIndex) || qty <= 0) {
+                alert('محصول و تعداد را انتخاب کنید');
+                return;
+            }
+            
+            const prod = products[prodIndex];
+            if (prod.stock < qty) {
+                alert('موجودی کافی نیست');
+                return;
+            }
+            
+            prod.stock -= qty;
+            prod.sales = (prod.sales || 0) + qty;
+            
+            sales.push({
+                productId: prod.id,
+                name: prod.name,
+                price: prod.price,
+                qty: qty,
+                date: new Date().toISOString()
+            });
+            
+            saveToLocal();
+            closeModals();
+            alert('فروش با موفقیت ثبت شد!');
+        }
+
+        function deleteProduct(index) {
+            if (confirm('این محصول حذف شود؟')) {
+                products.splice(index, 1);
+                saveToLocal();
+            }
+        }
+
+        function closeModals() {
+            document.getElementById('product-modal').classList.add('hidden');
+            document.getElementById('sale-modal').classList.add('hidden');
+        }
+
+        function exportData() {
+            let csv = "نام محصول,قیمت خرید,قیمت فروش,موجودی,فروش کل,سود هر واحد\n";
+            products.forEach(p => {
+                const unitProfit = p.price - (p.buyPrice || p.price * 0.7);
+                csv += `"${p.name}",${p.buyPrice || 0},${p.price},${p.stock},${(p.sales||0)},${unitProfit}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = "products.csv";
+            link.click();
+        }
+
+        window.onload = () => {
+            if (products.length === 0) {
+                products = [
+                    {id: 1, name: "لپ‌تاپ گیمینگ", buyPrice: 38000000, price: 45000000, stock: 8, sales: 12},
+                    {id: 2, name: "هدفون بی‌سیم", buyPrice: 850000, price: 1250000, stock: 35, sales: 47},
+                    {id: 3, name: "شارژر سریع", buyPrice: 320000, price: 450000, stock: 22, sales: 68}
+                ];
+            }
+            renderAll();
+        };
+    </script>
+</body>
+</html>
